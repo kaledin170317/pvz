@@ -1,37 +1,32 @@
 package main
 
 import (
-	_ "context"
-	"encoding/json"
 	"fmt"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
 	"log"
 	"net/http"
+	"os"
 	"pvZ/dataproviders"
-	_ "pvZ/dataproviders/models"
 	myhttp "pvZ/entrypoints/http"
 	"pvZ/usecases"
-	//_ "github.com/lib/pq"
 )
 
-type Response struct {
-	Message string `json:"message"`
-}
-
-func helloHandler(w http.ResponseWriter, r *http.Request) {
-	err := json.NewEncoder(w).Encode(Response{Message: "Привет, JSON!"})
-	if err != nil {
-		return
-	}
-}
-
 func main() {
-	dsn := "postgres://postgres:password@localhost:55555/pvz?sslmode=disable"
+	fmt.Println("hello мир1")
+
+	host := os.Getenv("DB_HOST")
+	port := os.Getenv("DB_PORT")
+	user := os.Getenv("DB_USER")
+	password := os.Getenv("DB_PASSWORD")
+	dbname := os.Getenv("DB_NAME")
+
+	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", user, password, host, port, dbname)
+
+	fmt.Println("DSN:", dsn) // можно удалить в релизе
 	dbx := sqlx.MustConnect("postgres", dsn)
 	defer dbx.Close()
+	fmt.Println("hello мир3")
 
 	db := dbx.DB
 	if err := dataproviders.RunMigrations(db); err != nil {
