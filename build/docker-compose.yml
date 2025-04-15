@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: pvz
+    ports:
+      - "55555:5432"
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
+  pvz:
+    build:
+      context: ..
+      dockerfile: build/Dockerfile
+    container_name: pvz-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "1488:1488"
+    networks:
+      - internal
+    environment:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_USER: postgres
+      DB_PASSWORD: password
+      DB_NAME: pvz
+      APP_PORT: "1488"
+      JWT_SECRET: "1488"
+
+volumes:
+  pgdata:
+
+networks:
+  internal:

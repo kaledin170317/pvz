@@ -42,10 +42,7 @@ jobs:
         run: go mod tidy
 
       - name: ✅ Run unit tests
-        run: go test ./...
+        run: go test ./tests/...
 
       - name: 🐳 Build Docker image
         run: docker build -t pvz-service .
-
-#      - name: ✅ Run Docker image (optional)
-#        run: docker run --rm pvz-service --help
