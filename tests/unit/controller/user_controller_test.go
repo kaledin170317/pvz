@@ -43,15 +43,23 @@ func TestUserController_LoginHandler(t *testing.T) {
 	uc := mocks.NewMockUserUsecase(ctrl)
 	handler := rest.NewUserController(uc)
 
-	input := rest.LoginRequestDTO{Email: "a@b.com", Password: "123456"}
+	input := rest.LoginRequestDTO{
+		Email:    "a@b.com",
+		Password: "123456",
+	}
 	body, _ := json.Marshal(input)
 
-	uc.EXPECT().Login(gomock.Any(), input.Email, input.Password).
-		Return("token", nil)
+	expectedToken := "token"
+
+	uc.EXPECT().
+		Login(gomock.Any(), input.Email, input.Password).
+		Return(expectedToken, nil)
 
 	req := httptest.NewRequest("POST", "/login", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
+
 	handler.LoginHandler(w, req)
 
-	assert.Equal(t, http.StatusCreated, w.Code)
+	assert.Equal(t, http.StatusOK, w.Code)
 }
