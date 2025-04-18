@@ -78,15 +78,14 @@ func (c *UserController) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, http.StatusBadRequest, "Invalid request format")
 		return
 	}
-
 	token, err := c.uc.Login(r.Context(), req.Email, req.Password)
 	if err != nil {
 		WriteError(w, http.StatusUnauthorized, err.Error())
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	_ = json.NewEncoder(w).Encode(LoginResponseDTO{Token: token})
+	w.WriteHeader(http.StatusOK) // заменено с 201 на 200
+	_, _ = w.Write([]byte(token))
 }
 
 func (c *UserController) DummyLoginHandler(w http.ResponseWriter, r *http.Request) {
@@ -102,5 +101,6 @@ func (c *UserController) DummyLoginHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	_ = json.NewEncoder(w).Encode(DummyLoginResponse{Token: token})
+	_, _ = w.Write([]byte(token))
+
 }

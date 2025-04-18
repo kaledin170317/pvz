@@ -59,5 +59,4 @@ func (c *ProductController) DeleteLastProductHandler(w http.ResponseWriter, r *h
 	}
 
 	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte(`{"message": "last product deleted"}`))
 }

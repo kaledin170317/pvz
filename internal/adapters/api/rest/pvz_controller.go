@@ -12,13 +12,25 @@ import (
 )
 
 type CreatePVZRequest struct {
-	City string `json:"city"`
+	ID               string `json:"id"`
+	City             string `json:"city"`
+	RegistrationDate string `json:"registrationDate"`
 }
 
 type PVZResponse struct {
 	ID               string `json:"id"`
 	City             string `json:"city"`
 	RegistrationDate string `json:"registrationDate"`
+}
+
+type PVZWithReceptionsResponse struct {
+	PVZ        PVZResponse             `json:"pvz"`
+	Receptions []ReceptionWithProducts `json:"receptions"`
+}
+
+type ReceptionWithProducts struct {
+	Reception ReceptionResponse `json:"reception"`
+	Products  []ProductResponse `json:"products"`
 }
 
 type PVZController struct {
@@ -35,7 +47,21 @@ func (c *PVZController) CreatePVZHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	created, err := c.uc.Create(r.Context(), &models.Pvz{City: req.City})
+	// Парсим дату
+	date, err := time.Parse(time.RFC3339, req.RegistrationDate)
+	if err != nil {
+		WriteError(w, http.StatusBadRequest, "invalid registrationDate format")
+		return
+	}
+
+	// Создаём модель с переданными значениями
+	pvz := &models.Pvz{
+		ID:               req.ID,
+		City:             req.City,
+		RegistrationDate: date,
+	}
+
+	created, err := c.uc.Create(r.Context(), pvz)
 	if err != nil {
 		WriteError(w, http.StatusBadRequest, err.Error())
 		return
@@ -63,15 +89,36 @@ func (c *PVZController) ListPVZHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var resp []PVZResponse
+	var fullResp []PVZWithReceptionsResponse
 	for _, p := range list {
-		resp = append(resp, PVZResponse{
-			ID:               p.ID,
-			City:             p.City,
-			RegistrationDate: p.RegistrationDate.Format("2006-01-02T15:04:05Z"),
+		receptions, _ := c.uc.GetReceptionsWithProducts(r.Context(), p.ID)
+
+		var recResp []ReceptionWithProducts
+		for _, rec := range receptions {
+			var prodResp []ProductResponse
+			for _, prod := range rec.Products {
+				prodResp = append(prodResp, ProductResponse{
+					ID: prod.ID, Type: prod.Type, ReceptionID: prod.ReceptionID, DateTime: prod.DateTime.Format(time.RFC3339),
+				})
+			}
+
+			recResp = append(recResp, ReceptionWithProducts{
+				Reception: ReceptionResponse{
+					ID: rec.Reception.ID, PVZID: rec.Reception.PVZID, DateTime: rec.Reception.DateTime.Format(time.RFC3339), Status: rec.Reception.Status,
+				},
+				Products: prodResp,
+			})
+		}
+
+		fullResp = append(fullResp, PVZWithReceptionsResponse{
+			PVZ: PVZResponse{
+				ID: p.ID, City: p.City, RegistrationDate: p.RegistrationDate.Format(time.RFC3339),
+			},
+			Receptions: recResp,
 		})
 	}
-	_ = json.NewEncoder(w).Encode(resp)
+
+	_ = json.NewEncoder(w).Encode(fullResp)
 }
 
 func parsePVZQueryParams(values url.Values) (start, end *time.Time, limit, offset int, err error) {

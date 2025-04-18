@@ -45,7 +45,7 @@ func Load() *Config {
 		},
 		App: AppConfig{
 			Port:      getEnvOrDefault("APP_PORT", "1488"),
-			JWTSecret: getEnvOrDefault("JWT_SECRET", "your-secret"),
+			JWTSecret: getEnvOrDefault("JWT_SECRET", "1488t"),
 		},
 	}
 }

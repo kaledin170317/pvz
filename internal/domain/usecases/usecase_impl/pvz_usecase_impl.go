@@ -37,3 +37,20 @@ func (u *pvzUsecaseImpl) GetByID(ctx context.Context, id string) (*models.Pvz, e
 func (u *pvzUsecaseImpl) List(ctx context.Context, startDate, endDate *time.Time, limit, offset int) ([]models.Pvz, error) {
 	return u.pvzRepo.ListWithDateRange(ctx, startDate, endDate, limit, offset)
 }
+
+func (u *pvzUsecaseImpl) GetReceptionsWithProducts(ctx context.Context, pvzID string) ([]models.ReceptionWithProducts, error) {
+	receptions, err := u.pvzRepo.GetReceptionsByPVZ(ctx, pvzID)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []models.ReceptionWithProducts
+	for _, rec := range receptions {
+		prods, _ := u.pvzRepo.GetProductsByReception(ctx, rec.ID)
+		result = append(result, models.ReceptionWithProducts{
+			Reception: &rec,
+			Products:  prods,
+		})
+	}
+	return result, nil
+}

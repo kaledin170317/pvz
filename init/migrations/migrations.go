@@ -6,16 +6,35 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"log"
+	"path/filepath"
+	"runtime"
+	"strings"
 )
 
+func toValidFileURL(path string) string {
+	path = filepath.ToSlash(path)
+	if !strings.HasPrefix(path, "/") {
+		path = "/" + path
+	}
+	return "file:/" + path
+}
+
+func getMigrationsPath() string {
+	_, b, _, _ := runtime.Caller(0)
+	projectRoot := filepath.Dir(filepath.Dir(filepath.Dir(b)))
+	rawPath := filepath.Join(projectRoot, "migrations")
+
+	return toValidFileURL(rawPath)
+}
 func RunMigrations(db *sql.DB) error {
 	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	if err != nil {
 		return err
 	}
+	migrationsPath := getMigrationsPath()
 
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://migrations", // путь к миграциям
+		migrationsPath, // путь к миграциям
 		"postgres", driver,
 	)
 	if err != nil {
@@ -36,9 +55,10 @@ func RollbackMigrations(db *sql.DB) error {
 	if err != nil {
 		return err
 	}
+	migrationsPath := getMigrationsPath()
 
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://migrations",
+		migrationsPath,
 		"postgres", driver,
 	)
 	if err != nil {

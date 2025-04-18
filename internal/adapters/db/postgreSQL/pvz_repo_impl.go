@@ -25,8 +25,8 @@ func NewPVZRepository(db *sqlx.DB) db.PVZRepository {
 func (r *pvzRepositoryImpl) Create(ctx context.Context, pvz *models.Pvz) (*models.Pvz, error) {
 	query, args, err := r.statement.
 		Insert("pvz").
-		Columns("city", "registration_date").
-		Values(pvz.City, sq.Expr("NOW()")).
+		Columns("id", "city", "registration_date").
+		Values(pvz.ID, pvz.City, pvz.RegistrationDate).
 		Suffix("RETURNING id, registration_date, city").
 		ToSql()
 	if err != nil {
@@ -43,7 +43,6 @@ func (r *pvzRepositoryImpl) Create(ctx context.Context, pvz *models.Pvz) (*model
 			return nil, err
 		}
 	}
-
 	return &created, nil
 }
 
@@ -89,6 +88,28 @@ func (r *pvzRepositoryImpl) ListWithDateRange(ctx context.Context, startDate, en
 	}
 
 	var result []models.Pvz
+	err = r.db.SelectContext(ctx, &result, query, args...)
+	return result, err
+}
+
+func (r *pvzRepositoryImpl) GetReceptionsByPVZ(ctx context.Context, pvzID string) ([]models.Reception, error) {
+	query, args, err := r.statement.Select("id", "pvz_id", "date_time", "status").
+		From("reception").Where(sq.Eq{"pvz_id": pvzID}).OrderBy("date_time").ToSql()
+	if err != nil {
+		return nil, err
+	}
+	var result []models.Reception
+	err = r.db.SelectContext(ctx, &result, query, args...)
+	return result, err
+}
+
+func (r *pvzRepositoryImpl) GetProductsByReception(ctx context.Context, receptionID string) ([]models.Product, error) {
+	query, args, err := r.statement.Select("id", "reception_id", "type", "date_time").
+		From("product").Where(sq.Eq{"reception_id": receptionID}).ToSql()
+	if err != nil {
+		return nil, err
+	}
+	var result []models.Product
 	err = r.db.SelectContext(ctx, &result, query, args...)
 	return result, err
 }

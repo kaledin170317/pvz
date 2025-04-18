@@ -27,6 +27,7 @@ func (r *receptionRepositoryImpl) Create(ctx context.Context, pvzID string) (*mo
 		Values(pvzID, squirrel.Expr("NOW()"), "in_progress").
 		Suffix("RETURNING id, pvz_id, date_time, status").
 		ToSql()
+
 	if err != nil {
 		return nil, err
 	}

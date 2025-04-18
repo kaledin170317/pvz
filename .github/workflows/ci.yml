@@ -50,34 +50,33 @@ jobs:
         run: |
           go install github.com/golang/mock/mockgen@v1.6.0
 
-          # 🔹 Usecase моки
           mockgen -source=internal/domain/usecases/pvz_usecase.go \
                   -destination=internal/domain/usecases/mocks/pvz_usecase_mock.go -package=mocks
-
           mockgen -source=internal/domain/usecases/reception_usecase.go \
                   -destination=internal/domain/usecases/mocks/reception_usecase_mock.go -package=mocks
-
           mockgen -source=internal/domain/usecases/product_usecase.go \
                   -destination=internal/domain/usecases/mocks/product_usecase_mock.go -package=mocks
-
           mockgen -source=internal/domain/usecases/user_usecases.go \
                   -destination=internal/domain/usecases/mocks/user_usecase_mock.go -package=mocks
-
-          # 🔸 Repo моки
           mockgen -source=internal/adapters/db/product_repo.go \
                   -destination=internal/adapters/db/mocks/product_repo_mock.go -package=mocks
-
           mockgen -source=internal/adapters/db/pvz_repo.go \
                   -destination=internal/adapters/db/mocks/pvz_repo_mock.go -package=mocks
-
           mockgen -source=internal/adapters/db/reception_repo.go \
                   -destination=internal/adapters/db/mocks/reception_repo_mock.go -package=mocks
-
           mockgen -source=internal/adapters/db/user_repo.go \
                   -destination=internal/adapters/db/mocks/user_repo_mock.go -package=mocks
 
       - name: ✅ Run unit tests
         run: go test ./tests/unit/... -v
+
+      - name: 🔨 Run database migrations
+        run: |
+          curl -L https://github.com/golang-migrate/migrate/releases/download/v4.15.2/migrate.linux-amd64.tar.gz | tar xvz
+          ./migrate -path init/migrations -database "postgres://postgres:password@localhost:5432/pvz?sslmode=disable" up
+
+      - name: 🧪 Run integration tests
+        run: go test ./tests/integration/... -v
 
       - name: 🐳 Build Docker image
         run: docker build -t pvz-service -f build/Dockerfile .

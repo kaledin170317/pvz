@@ -25,6 +25,7 @@ type ReceptionController struct {
 func NewReceptionController(uc usecases.ReceptionUsecase) *ReceptionController {
 	return &ReceptionController{uc: uc}
 }
+
 func (c *ReceptionController) CreateReceptionHandler(w http.ResponseWriter, r *http.Request) {
 	var req CreateReceptionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -44,6 +45,7 @@ func (c *ReceptionController) CreateReceptionHandler(w http.ResponseWriter, r *h
 		DateTime: rec.DateTime.Format("2006-01-02T15:04:05Z"),
 		Status:   rec.Status,
 	}
+
 	w.WriteHeader(http.StatusCreated)
 	_ = json.NewEncoder(w).Encode(resp)
 }
