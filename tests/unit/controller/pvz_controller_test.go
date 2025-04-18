@@ -21,7 +21,11 @@ func TestPVZController_CreatePVZHandler(t *testing.T) {
 	uc := mocks.NewMockPVZUsecase(ctrl)
 	h := rest.NewPVZController(uc)
 
-	reqData := rest.CreatePVZRequest{City: "Казань"}
+	reqData := rest.CreatePVZRequest{
+		ID:               "11111111-1111-1111-1111-111111111111",
+		City:             "Москва",
+		RegistrationDate: "2025-04-18T21:00:00Z",
+	}
 	jsonBody, _ := json.Marshal(reqData)
 
 	uc.EXPECT().Create(gomock.Any(), gomock.Any()).
