@@ -2,48 +2,26 @@ package integration_test
 
 import (
 	"bytes"
-	"database/sql"
 	"encoding/json"
-	"fmt"
-	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
-	"net/http/httptest"
 	"os"
 	"pvZ/internal/adapters/api/rest"
-	"pvZ/internal/app"
 	"testing"
 
 	_ "github.com/lib/pq"
 )
 
-var (
-	testServer *httptest.Server
-	testClient *http.Client
-	databaseX  *sqlx.DB
-	database   *sql.DB
-)
-
 func TestMain(m *testing.M) {
-	fmt.Println("Старт тестов")
-	dbx := sqlx.MustConnect("postgres", "postgres://postgres:password@localhost:55555/pvz?sslmode=disable")
-	defer dbx.Close()
 
-	database = dbx.DB
-	databaseX = dbx
-
-	secretKey := []byte("test")
-	router := app.SetupRouter(dbx, secretKey)
-
-	testServer = httptest.NewServer(router)
-	defer testServer.Close()
-
-	testClient = testServer.Client()
-
-	// Запуск всех тестов
-	code := m.Run()
-	os.Exit(code)
+	os.Setenv("DB_HOST", "localhost")
+	os.Setenv("DB_PORT", "5432")
+	os.Setenv("DB_USER", "postgres")
+	os.Setenv("DB_PASSWORD", "password")
+	os.Setenv("DB_NAME", "pvz")
+	os.Setenv("APP_PORT", "1488")
+	os.Setenv("JWT_SECRET", "test-secret")
 }
 
 func getToken(t *testing.T, client *http.Client, baseURL string, login rest.DummyLoginRequest) string {
@@ -56,7 +34,7 @@ func getToken(t *testing.T, client *http.Client, baseURL string, login rest.Dumm
 	assert.NoError(t, err)
 	resp.Body.Close()
 
-	return string(bytes.Trim(tokenBytes, `"`)) // JWT в виде строки
+	return string(bytes.Trim(tokenBytes, `"`))
 }
 
 func doRequest(t *testing.T, client *http.Client, method, url, token string, body interface{}) *http.Response {

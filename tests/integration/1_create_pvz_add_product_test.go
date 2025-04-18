@@ -3,28 +3,58 @@ package integration_test
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
+	"log"
 	"net/http"
+	"net/http/httptest"
 	"pvZ/init/migrations"
 	"pvZ/internal/adapters/api/rest"
+	"pvZ/internal/app"
+	"pvZ/internal/config"
 	"testing"
 )
 
 func TestCreatePVZAddProduct(t *testing.T) {
+	cfg := config.Load()
 
-	if err := migrations.RollbackMigrations(database); err != nil {
+	fmt.Println("DSN:", cfg.DB.DSN())
+
+	dbx := sqlx.MustConnect("postgres", cfg.DB.DSN())
+	defer dbx.Close()
+
+	db := dbx.DB
+
+	if err := migrations.RollbackMigrations(db); err != nil {
+		log.Println("Пиздец4")
+		log.Println(err)
+		log.Println("Пиздец5")
+	}
+
+	if err := migrations.RunMigrations(db); err != nil {
+		log.Println("Пиздец2")
+		log.Println(err)
+		log.Println("Пиздец3")
+	}
+
+	secretKey := []byte(cfg.App.JWTSecret)
+
+	r := app.SetupRouter(dbx, secretKey)
+
+	if err := migrations.RollbackMigrations(db); err != nil {
 		assert.NoError(t, err)
 	}
 
-	if err := migrations.RunMigrations(database); err != nil {
+	if err := migrations.RunMigrations(db); err != nil {
 		assert.NoError(t, err)
 	}
 
-	server := testServer
-	client := testClient
+	testServer := httptest.NewServer(r)
+	defer testServer.Close()
+	testClient := testServer.Client()
 
-	moderatorToken := getToken(t, client, server.URL, rest.DummyLoginRequest{Role: "moderator"})
-	employeeToken := getToken(t, client, server.URL, rest.DummyLoginRequest{Role: "employee"})
+	moderatorToken := getToken(t, testClient, testServer.URL, rest.DummyLoginRequest{Role: "moderator"})
+	employeeToken := getToken(t, testClient, testServer.URL, rest.DummyLoginRequest{Role: "employee"})
 
 	// 1. Создание ПВЗ
 	pvzReq := rest.CreatePVZRequest{
@@ -32,7 +62,7 @@ func TestCreatePVZAddProduct(t *testing.T) {
 		City:             "Москва",
 		RegistrationDate: "2025-04-18T21:00:00Z",
 	}
-	resp := doRequest(t, client, "POST", server.URL+"/pvz", moderatorToken, pvzReq)
+	resp := doRequest(t, testClient, "POST", testServer.URL+"/pvz", moderatorToken, pvzReq)
 	assert.Equal(t, http.StatusCreated, resp.StatusCode)
 
 	var pvzResp rest.PVZResponse
@@ -45,7 +75,7 @@ func TestCreatePVZAddProduct(t *testing.T) {
 
 	// 2. Создание приёмки
 	recReq := rest.CreateReceptionRequest{PVZID: pvzResp.ID}
-	resp = doRequest(t, client, "POST", server.URL+"/receptions", employeeToken, recReq)
+	resp = doRequest(t, testClient, "POST", testServer.URL+"/receptions", employeeToken, recReq)
 	assert.Equal(t, http.StatusCreated, resp.StatusCode)
 
 	var recResp rest.ReceptionResponse
@@ -68,7 +98,7 @@ func TestCreatePVZAddProduct(t *testing.T) {
 			PVZID: pvzResp.ID,
 		}
 
-		resp = doRequest(t, client, "POST", server.URL+"/products", employeeToken, prodReq)
+		resp = doRequest(t, testClient, "POST", testServer.URL+"/products", employeeToken, prodReq)
 		assert.Equal(t, http.StatusCreated, resp.StatusCode)
 
 		var prodResp rest.ProductResponse
@@ -80,7 +110,7 @@ func TestCreatePVZAddProduct(t *testing.T) {
 	}
 
 	// 4. Закрытие приёмки
-	resp = doRequest(t, client, "POST", fmt.Sprintf("%s/pvz/%s/close_last_reception", server.URL, pvzResp.ID), employeeToken, nil)
+	resp = doRequest(t, testClient, "POST", fmt.Sprintf("%s/pvz/%s/close_last_reception", testServer.URL, pvzResp.ID), employeeToken, nil)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 	var closedRec rest.ReceptionResponse
