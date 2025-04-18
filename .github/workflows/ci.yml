@@ -70,11 +70,6 @@ jobs:
       - name: ✅ Run unit tests
         run: go test ./tests/unit/... -v
 
-      - name: 🔨 Run database migrations
-        run: |
-          curl -L https://github.com/golang-migrate/migrate/releases/download/v4.15.2/migrate.linux-amd64.tar.gz | tar xvz
-          ./migrate -path init/migrations -database "postgres://postgres:password@localhost:5432/pvz?sslmode=disable" up
-
       - name: 🧪 Run integration tests
         run: go test ./tests/integration/... -v
 
