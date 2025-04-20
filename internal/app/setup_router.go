@@ -11,6 +11,7 @@ import (
 )
 
 func SetupRouter(dbx *sqlx.DB, secretKey []byte) *mux.Router {
+
 	// Репозитории
 	userRepo := postgreSQL.NewUserRepository(dbx)
 	pvzRepo := postgreSQL.NewPVZRepository(dbx)

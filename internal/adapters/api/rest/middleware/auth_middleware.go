@@ -37,8 +37,6 @@ func (am *AuthMiddleware) RequireRole(requiredRole string) func(http.Handler) ht
 			}
 
 			role, ok := claims["role"].(string)
-			//userID, idOk := claims["id"].(string)
-			//email, emailOk := claims["email"].(string)
 
 			if !ok {
 				rest.WriteError(w, http.StatusUnauthorized, "invalid token payload")
@@ -50,8 +48,6 @@ func (am *AuthMiddleware) RequireRole(requiredRole string) func(http.Handler) ht
 				return
 			}
 
-			//ctx := context.WithValue(r.Context(), "id", userID)
-			//ctx = context.WithValue(r.Context(), "email", email)
 			ctx := context.WithValue(r.Context(), "role", role)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})

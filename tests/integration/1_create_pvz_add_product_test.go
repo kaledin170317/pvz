@@ -26,15 +26,11 @@ func TestCreatePVZAddProduct(t *testing.T) {
 	db := dbx.DB
 
 	if err := migrations.RollbackMigrations(db); err != nil {
-		log.Println("Пиздец4")
 		log.Println(err)
-		log.Println("Пиздец5")
 	}
 
 	if err := migrations.RunMigrations(db); err != nil {
-		log.Println("Пиздец2")
 		log.Println(err)
-		log.Println("Пиздец3")
 	}
 
 	secretKey := []byte(cfg.App.JWTSecret)

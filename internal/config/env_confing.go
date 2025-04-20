@@ -38,14 +38,14 @@ func Load() *Config {
 	return &Config{
 		DB: DBConfig{
 			Host:     getEnvOrDefault("DB_HOST", "localhost"),
-			Port:     getEnvOrDefault("DB_PORT", "55555"),
+			Port:     getEnvOrDefault("DB_PORT", "5432"),
 			User:     getEnvOrDefault("DB_USER", "postgres"),
 			Password: getEnvOrDefault("DB_PASSWORD", "password"),
 			Name:     getEnvOrDefault("DB_NAME", "pvz"),
 		},
 		App: AppConfig{
-			Port:      getEnvOrDefault("APP_PORT", "1488"),
-			JWTSecret: getEnvOrDefault("JWT_SECRET", "1488t"),
+			Port:      getEnvOrDefault("APP_PORT", "8080"),
+			JWTSecret: getEnvOrDefault("JWT_SECRET", "jwt-secret"),
 		},
 	}
 }
