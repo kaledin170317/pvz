@@ -90,7 +90,7 @@ docker run -p 8080:8080 --env-file .env pvz-service
 
 ```env
 DB_HOST=localhost
-DB_PORT=55555
+DB_PORT=5432
 DB_USER=postgres
 DB_PASSWORD=password
 DB_NAME=pvz
