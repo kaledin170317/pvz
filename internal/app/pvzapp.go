@@ -15,7 +15,6 @@ import (
 	"pvZ/internal/config"
 )
 
-// Точка входа — запуск и REST, и gRPC
 func RunPVZ() {
 	cfg := config.Load()
 
@@ -34,7 +33,7 @@ func RunPVZ() {
 	// REST-сервер
 	go func() {
 		router := SetupRoutes(deps.UserUC, deps.PVZUC, deps.ReceptionUC, deps.ProductUC, secretKey)
-		fmt.Printf("🌐 REST-сервер на порту :%s\n", cfg.App.Port)
+		fmt.Printf("REST-сервер на порту :%s\n", cfg.App.Port)
 		log.Fatal(http.ListenAndServe(":"+cfg.App.Port, router))
 	}()
 
@@ -48,7 +47,7 @@ func RunPVZ() {
 		grpcServer := grpc.NewServer()
 		pvzpb.RegisterPVZServiceServer(grpcServer, grpcapi.NewPVZService(deps.PVZUC))
 
-		fmt.Println("🔌 gRPC сервер запущен на порту :3000")
+		fmt.Println("gRPC сервер запущен на порту :3000")
 		if err := grpcServer.Serve(lis); err != nil {
 			log.Fatalf("gRPC сервер завершился с ошибкой: %v", err)
 		}

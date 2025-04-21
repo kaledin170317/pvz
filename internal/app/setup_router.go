@@ -9,9 +9,9 @@ import (
 	"pvZ/internal/adapters/db/postgreSQL"
 	"pvZ/internal/domain/usecases"
 	"pvZ/internal/domain/usecases/usecase_impl"
+	"time"
 )
 
-// Настройка HTTP-роутера, принимает готовые usecase'ы
 func SetupRoutes(
 	userUC usecases.UserUsecase,
 	pvzUC usecases.PVZUsecase,
@@ -26,6 +26,8 @@ func SetupRoutes(
 	auth := middleware.NewAuthMiddleware(secretKey)
 
 	r := mux.NewRouter()
+
+	r.Use(middleware.TimeoutMiddleware(100 * time.Millisecond))
 
 	r.HandleFunc("/dummyLogin", userController.DummyLoginHandler).Methods("POST")
 	r.HandleFunc("/register", userController.RegisterHandler).Methods("POST")
@@ -43,7 +45,6 @@ func SetupRoutes(
 	return r
 }
 
-// Единая точка для инициализации зависимостей
 type Dependencies struct {
 	UserUC      usecases.UserUsecase
 	PVZUC       usecases.PVZUsecase
@@ -51,7 +52,6 @@ type Dependencies struct {
 	ProductUC   usecases.ProductUsecase
 }
 
-// Возвращает все usecase'ы из одной функции
 func SetupDependencies(dbx *sqlx.DB, jwtSecret []byte) *Dependencies {
 	userRepo := postgreSQL.NewUserRepository(dbx)
 	pvzRepo := postgreSQL.NewPVZRepository(dbx)
