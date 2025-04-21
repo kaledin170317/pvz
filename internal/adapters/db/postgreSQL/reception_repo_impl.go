@@ -6,6 +6,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"pvZ/internal/adapters/db"
 	"pvZ/internal/domain/models"
+	"pvZ/internal/logger"
 )
 
 type receptionRepositoryImpl struct {
@@ -34,7 +35,12 @@ func (r *receptionRepositoryImpl) Create(ctx context.Context, pvzID string) (*mo
 
 	var reception models.Reception
 	err = r.db.GetContext(ctx, &reception, query, args...)
-	return &reception, err
+	if err != nil {
+		return nil, err
+	}
+
+	logger.Log.Info("reception created", "id", reception.ID, "pvz_id", reception.PVZID)
+	return &reception, nil
 }
 
 func (r *receptionRepositoryImpl) GetLastInProgress(ctx context.Context, pvzID string) (*models.Reception, error) {
@@ -78,5 +84,9 @@ func (r *receptionRepositoryImpl) CloseLastReception(ctx context.Context, pvzID 
 
 	var updated models.Reception
 	err = r.db.GetContext(ctx, &updated, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	logger.Log.Info("reception closed", "id", updated.ID, "pvz_id", updated.PVZID)
 	return &updated, err
 }

@@ -12,18 +12,18 @@ func run(name string, args ...string) {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
-		fmt.Printf("Ошибка выполнения %s: %v\n", name, err)
+		fmt.Printf("Failed to execute %s: %v\n", name, err)
 		os.Exit(1)
 	}
 }
 
 func main() {
-	fmt.Println("Генерация моков...")
+	fmt.Println("Generating mocks...")
 
-	// переход в корень проекта
+	// change working directory to project root
 	root, _ := filepath.Abs("../..")
 	if err := os.Chdir(root); err != nil {
-		fmt.Println("Не удалось перейти в корень:", err)
+		fmt.Println("Failed to change to project root:", err)
 		os.Exit(1)
 	}
 
@@ -36,5 +36,5 @@ func main() {
 	run("mockgen", "-source=internal/adapters/db/reception_repo.go", "-destination=internal/adapters/db/mocks/reception_repo_mock.go", "-package=mocks")
 	run("mockgen", "-source=internal/adapters/db/user_repo.go", "-destination=internal/adapters/db/mocks/user_repo_mock.go", "-package=mocks")
 
-	fmt.Println("Моки сгенерированы")
+	fmt.Println("Mocks successfully generated.")
 }

@@ -16,8 +16,11 @@ type DBConfig struct {
 }
 
 type AppConfig struct {
-	Port      string
-	JWTSecret string
+	Port       string
+	Rest       string
+	GRPC       string
+	Prometheus string
+	JWTSecret  string
 }
 
 type Config struct {
@@ -44,8 +47,10 @@ func Load() *Config {
 			Name:     getEnvOrDefault("DB_NAME", "pvz"),
 		},
 		App: AppConfig{
-			Port:      getEnvOrDefault("APP_PORT", "8080"),
-			JWTSecret: getEnvOrDefault("JWT_SECRET", "jwt-secret"),
+			Rest:       getEnvOrDefault("APP_PORT", "8080"),
+			GRPC:       getEnvOrDefault("APP_GRPC_PORT", "3000"),
+			Prometheus: getEnvOrDefault("APP_PROMETHEUS_PORT", "9000"),
+			JWTSecret:  getEnvOrDefault("JWT_SECRET", "jwt-secret"),
 		},
 	}
 }

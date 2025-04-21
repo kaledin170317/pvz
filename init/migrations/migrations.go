@@ -5,34 +5,16 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	"log"
 	"os"
-	"path/filepath"
-	"strings"
+	"pvZ/internal/logger"
 )
-
-func toValidFileURL(path string) string {
-	path = filepath.ToSlash(path)
-	if !strings.HasPrefix(path, "/") {
-		path = "/" + path
-	}
-	return "file:/" + path
-}
-
-//func getMigrationsPath() string {
-//	_, b, _, _ := runtime.Caller(0)
-//	projectRoot := filepath.Dir(filepath.Dir(filepath.Dir(b)))
-//	rawPath := filepath.Join(projectRoot, "migrations")
-//
-//	return toValidFileURL(rawPath)
-//}
 
 func getMigrationsPath() string {
 	path := os.Getenv("MIGRATIONS_PATH")
 	if path != "" {
 		return path
 	}
-	return "file://migrations" // по умолчанию
+	return "file://migrations"
 }
 
 func RunMigrations(db *sql.DB) error {
@@ -40,12 +22,10 @@ func RunMigrations(db *sql.DB) error {
 	if err != nil {
 		return err
 	}
+
 	migrationsPath := getMigrationsPath()
 
-	m, err := migrate.NewWithDatabaseInstance(
-		migrationsPath,
-		"pvz", driver,
-	)
+	m, err := migrate.NewWithDatabaseInstance(migrationsPath, "pvz", driver)
 	if err != nil {
 		return err
 	}
@@ -55,7 +35,7 @@ func RunMigrations(db *sql.DB) error {
 		return err
 	}
 
-	log.Println("Миграции применены успешно")
+	logger.Log.Info("Migrations applied successfully")
 	return nil
 }
 
@@ -64,21 +44,19 @@ func RollbackMigrations(db *sql.DB) error {
 	if err != nil {
 		return err
 	}
+
 	migrationsPath := getMigrationsPath()
 
-	m, err := migrate.NewWithDatabaseInstance(
-		migrationsPath,
-		"pvz", driver,
-	)
+	m, err := migrate.NewWithDatabaseInstance(migrationsPath, "pvz", driver)
 	if err != nil {
 		return err
 	}
 
-	err = m.Steps(-1) // откатить на одну миграцию назад
+	err = m.Steps(-1)
 	if err != nil && err != migrate.ErrNoChange {
 		return err
 	}
 
-	log.Println("Откат миграции выполнен")
+	logger.Log.Info("Rollback completed successfully")
 	return nil
 }

@@ -2,11 +2,10 @@ package middleware
 
 import (
 	"context"
+	"github.com/golang-jwt/jwt/v5"
 	"net/http"
 	"pvZ/internal/adapters/api/rest"
 	"strings"
-
-	"github.com/golang-jwt/jwt/v5"
 )
 
 type AuthMiddleware struct {

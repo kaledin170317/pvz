@@ -6,6 +6,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"pvZ/internal/adapters/db"
 	"pvZ/internal/domain/models"
+	"pvZ/internal/logger"
 )
 
 type userRepositoryImpl struct {
@@ -37,6 +38,7 @@ func (r *userRepositoryImpl) Create(ctx context.Context, user *models.User) (*mo
 		return nil, err
 	}
 
+	logger.Log.Info("user created", "id", created.ID, "email", created.Email)
 	return &created, nil
 }
 

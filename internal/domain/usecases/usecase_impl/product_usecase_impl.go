@@ -35,17 +35,21 @@ func (u *productUsecaseImpl) AddProduct(ctx context.Context, pvzID, productType 
 
 func (u *productUsecaseImpl) DeleteLast(ctx context.Context, pvzID string) error {
 	reception, err := u.receptionRepo.GetLastInProgress(ctx, pvzID)
+
 	if err != nil {
 		return err
 	}
+
 	if reception == nil {
 		return errors.New("нет активной приёмки")
 	}
 
 	lastProduct, err := u.productRepo.GetLastInReception(ctx, reception.ID)
+
 	if err != nil {
 		return err
 	}
+
 	if lastProduct == nil {
 		return errors.New("нет товаров для удаления")
 	}

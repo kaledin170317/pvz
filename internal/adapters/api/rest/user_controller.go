@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"pvZ/internal/domain/models"
 	"pvZ/internal/domain/usecases"
+	"pvZ/internal/logger"
 )
 
 type LoginResponseDTO struct {
@@ -47,60 +48,55 @@ func NewUserController(uc usecases.UserUsecase) *UserController {
 func (c *UserController) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	var req RegisterRequestDTO
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logger.Log.Error("invalid register body", "error", err)
 		WriteError(w, http.StatusBadRequest, "Invalid request format")
 		return
 	}
-
-	user := &models.User{
-		Email:    req.Email,
-		Password: req.Password,
-		Role:     req.Role,
-	}
+	user := &models.User{Email: req.Email, Password: req.Password, Role: req.Role}
 	created, err := c.uc.Register(r.Context(), user)
 	if err != nil {
+		logger.Log.Error("register failed", "error", err)
 		WriteError(w, http.StatusServiceUnavailable, err.Error())
 		return
 	}
-
-	resp := RegisterResponseDTO{
-		ID:    created.ID,
-		Email: created.Email,
-		Role:  created.Role,
-	}
+	resp := RegisterResponseDTO{ID: created.ID, Email: created.Email, Role: created.Role}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	_ = json.NewEncoder(w).Encode(resp)
+	logger.Log.Info("user registered", "userID", created.ID)
 }
 
 func (c *UserController) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequestDTO
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logger.Log.Error("invalid login body", "error", err)
 		WriteError(w, http.StatusBadRequest, "Invalid request format")
 		return
 	}
 	token, err := c.uc.Login(r.Context(), req.Email, req.Password)
 	if err != nil {
+		logger.Log.Error("login failed", "error", err)
 		WriteError(w, http.StatusUnauthorized, err.Error())
 		return
 	}
-
-	w.WriteHeader(http.StatusOK) // заменено с 201 на 200
+	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte(token))
+	logger.Log.Info("user logged in", "email", req.Email)
 }
 
 func (c *UserController) DummyLoginHandler(w http.ResponseWriter, r *http.Request) {
 	var req DummyLoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logger.Log.Error("invalid dummy login body", "error", err)
 		WriteError(w, http.StatusBadRequest, "Invalid request format")
 		return
 	}
-
 	token, err := c.uc.DummyLogin(r.Context(), req.Role)
 	if err != nil {
+		logger.Log.Error("dummy login failed", "error", err)
 		WriteError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-
 	_, _ = w.Write([]byte(token))
-
+	logger.Log.Info("dummy login issued", "role", req.Role)
 }

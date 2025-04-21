@@ -7,6 +7,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"pvZ/internal/adapters/db"
 	"pvZ/internal/domain/models"
+	"pvZ/internal/logger"
 	"time"
 )
 
@@ -36,13 +37,9 @@ func (r *pvzRepositoryImpl) Create(ctx context.Context, pvz *models.Pvz) (*model
 	var created models.Pvz
 	err = r.db.GetContext(ctx, &created, query, args...)
 	if err != nil {
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		default:
-			return nil, err
-		}
+		return nil, err
 	}
+	logger.Log.Info("pvz created", "id", created.ID, "city", created.City)
 	return &created, nil
 }
 

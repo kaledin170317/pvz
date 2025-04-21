@@ -15,12 +15,10 @@ type receptionUsecaseImpl struct {
 func NewReceptionUsecase(repo db.ReceptionRepository) usecases.ReceptionUsecase {
 	return &receptionUsecaseImpl{receptionRepo: repo}
 }
+
 func (u *receptionUsecaseImpl) Create(ctx context.Context, pvzID string) (*models.Reception, error) {
 
 	exists, _ := u.receptionRepo.GetLastInProgress(ctx, pvzID)
-	//if err != nil {
-	//	return nil, err
-	//}
 
 	if exists != nil {
 		return nil, errors.New("приёмка уже открыта")

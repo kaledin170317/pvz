@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"pvZ/internal/domain/models"
 	"pvZ/internal/domain/usecases"
+	"pvZ/internal/logger"
 	"pvZ/internal/metrics"
 	"strconv"
 	"time"
@@ -43,42 +44,33 @@ func NewPVZController(uc usecases.PVZUsecase) *PVZController {
 }
 
 func (c *PVZController) CreatePVZHandler(w http.ResponseWriter, r *http.Request) {
-
 	var req CreatePVZRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logger.Log.Error("invalid request body", "error", err)
 		WriteError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
-	// Парсим дату
 	date, err := time.Parse(time.RFC3339, req.RegistrationDate)
 	if err != nil {
+		logger.Log.Error("invalid registration date", "error", err)
 		WriteError(w, http.StatusBadRequest, "invalid registrationDate format")
 		return
 	}
 
-	// Создаём модель с переданными значениями
-	pvz := &models.Pvz{
-		ID:               req.ID,
-		City:             req.City,
-		RegistrationDate: date,
-	}
-
+	pvz := &models.Pvz{ID: req.ID, City: req.City, RegistrationDate: date}
 	created, err := c.uc.Create(r.Context(), pvz)
 	if err != nil {
+		logger.Log.Error("failed to create pvz", "error", err)
 		WriteError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	resp := PVZResponse{
-		ID:               created.ID,
-		City:             created.City,
-		RegistrationDate: created.RegistrationDate.Format("2006-01-02T15:04:05Z"),
-	}
-
+	resp := PVZResponse{ID: created.ID, City: created.City, RegistrationDate: created.RegistrationDate.Format("2006-01-02T15:04:05Z")}
 	w.WriteHeader(http.StatusCreated)
 	_ = json.NewEncoder(w).Encode(resp)
 	metrics.PVZCreatedTotal.Inc()
+	logger.Log.Info("pvz created successfully", "pvzId", created.ID)
 }
 
 func (c *PVZController) ListPVZHandler(w http.ResponseWriter, r *http.Request) {

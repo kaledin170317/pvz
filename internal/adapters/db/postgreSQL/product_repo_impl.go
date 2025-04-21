@@ -6,6 +6,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"pvZ/internal/adapters/db"
 	"pvZ/internal/domain/models"
+	"pvZ/internal/logger"
 )
 
 type productRepositoryImpl struct {
@@ -33,7 +34,11 @@ func (r *productRepositoryImpl) AddProduct(ctx context.Context, receptionID stri
 
 	var product models.Product
 	err = r.db.GetContext(ctx, &product, query, args...)
-	return &product, err
+	if err != nil {
+		return nil, err
+	}
+	logger.Log.Info("product added", "id", product.ID, "type", product.Type, "reception_id", product.ReceptionID)
+	return &product, nil
 }
 
 func (r *productRepositoryImpl) GetLastInReception(ctx context.Context, receptionID string) (*models.Product, error) {
@@ -72,5 +77,10 @@ func (r *productRepositoryImpl) DeleteLastProduct(ctx context.Context, reception
 	}
 
 	_, err = r.db.ExecContext(ctx, query, args...)
-	return err
+	if err != nil {
+		return err
+	}
+
+	logger.Log.Info("product deleted", "id", last.ID, "reception_id", receptionID)
+	return nil
 }
