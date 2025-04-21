@@ -14,4 +14,7 @@ EXPOSE 8080
 # gRPC порт
 EXPOSE 3000
 
+# Prometheus  порт
+EXPOSE 9000
+
 CMD ["/pvz_server"]

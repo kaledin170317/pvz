@@ -29,6 +29,8 @@ func SetupRoutes(
 
 	r.Use(middleware.TimeoutMiddleware(100 * time.Millisecond))
 
+	r.Use(middleware.MetricsMiddleware)
+
 	r.HandleFunc("/dummyLogin", userController.DummyLoginHandler).Methods("POST")
 	r.HandleFunc("/register", userController.RegisterHandler).Methods("POST")
 	r.HandleFunc("/login", userController.LoginHandler).Methods("POST")

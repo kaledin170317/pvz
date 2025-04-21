@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"pvZ/internal/domain/usecases"
+	"pvZ/internal/metrics"
 )
 
 type AddProductRequest struct {
@@ -48,6 +49,7 @@ func (c *ProductController) AddProductHandler(w http.ResponseWriter, r *http.Req
 	}
 	w.WriteHeader(http.StatusCreated)
 	_ = json.NewEncoder(w).Encode(resp)
+	metrics.ProductsAddedTotal.Inc()
 }
 
 func (c *ProductController) DeleteLastProductHandler(w http.ResponseWriter, r *http.Request) {

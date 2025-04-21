@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"pvZ/internal/domain/usecases"
+	"pvZ/internal/metrics"
 )
 
 type CreateReceptionRequest struct {
@@ -48,6 +49,7 @@ func (c *ReceptionController) CreateReceptionHandler(w http.ResponseWriter, r *h
 
 	w.WriteHeader(http.StatusCreated)
 	_ = json.NewEncoder(w).Encode(resp)
+	metrics.ReceptionsCreatedTotal.Inc()
 }
 
 func (c *ReceptionController) CloseLastReceptionHandler(w http.ResponseWriter, r *http.Request) {

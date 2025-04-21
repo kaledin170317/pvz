@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"pvZ/internal/domain/models"
 	"pvZ/internal/domain/usecases"
+	"pvZ/internal/metrics"
 	"strconv"
 	"time"
 )
@@ -40,7 +41,9 @@ type PVZController struct {
 func NewPVZController(uc usecases.PVZUsecase) *PVZController {
 	return &PVZController{uc: uc}
 }
+
 func (c *PVZController) CreatePVZHandler(w http.ResponseWriter, r *http.Request) {
+
 	var req CreatePVZRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		WriteError(w, http.StatusBadRequest, "invalid request body")
@@ -72,8 +75,10 @@ func (c *PVZController) CreatePVZHandler(w http.ResponseWriter, r *http.Request)
 		City:             created.City,
 		RegistrationDate: created.RegistrationDate.Format("2006-01-02T15:04:05Z"),
 	}
+
 	w.WriteHeader(http.StatusCreated)
 	_ = json.NewEncoder(w).Encode(resp)
+	metrics.PVZCreatedTotal.Inc()
 }
 
 func (c *PVZController) ListPVZHandler(w http.ResponseWriter, r *http.Request) {

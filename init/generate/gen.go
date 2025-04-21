@@ -18,12 +18,12 @@ func run(name string, args ...string) {
 }
 
 func main() {
-	fmt.Println("🔧 Генерация моков...")
+	fmt.Println("Генерация моков...")
 
 	// переход в корень проекта
 	root, _ := filepath.Abs("../..")
 	if err := os.Chdir(root); err != nil {
-		fmt.Println("❌ Не удалось перейти в корень:", err)
+		fmt.Println("Не удалось перейти в корень:", err)
 		os.Exit(1)
 	}
 
@@ -36,5 +36,5 @@ func main() {
 	run("mockgen", "-source=internal/adapters/db/reception_repo.go", "-destination=internal/adapters/db/mocks/reception_repo_mock.go", "-package=mocks")
 	run("mockgen", "-source=internal/adapters/db/user_repo.go", "-destination=internal/adapters/db/mocks/user_repo_mock.go", "-package=mocks")
 
-	fmt.Println("✅ Моки сгенерированы")
+	fmt.Println("Моки сгенерированы")
 }

@@ -1,13 +1,13 @@
 package app
 
 import (
-	"fmt"
+	"github.com/jmoiron/sqlx"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"google.golang.org/grpc"
 	"log"
 	"net"
 	"net/http"
-
-	"github.com/jmoiron/sqlx"
-	"google.golang.org/grpc"
+	"pvZ/internal/metrics"
 
 	"pvZ/init/migrations"
 	grpcapi "pvZ/internal/adapters/api/grpc"
@@ -18,39 +18,42 @@ import (
 func RunPVZ() {
 	cfg := config.Load()
 
-	fmt.Println("DSN:", cfg.DB.DSN())
 	dbx := sqlx.MustConnect("postgres", cfg.DB.DSN())
 	defer dbx.Close()
 
-	db := dbx.DB
-	if err := migrations.RunMigrations(db); err != nil {
+	if err := migrations.RunMigrations(dbx.DB); err != nil {
 		log.Println("migration error:", err)
 	}
 
 	secretKey := []byte(cfg.App.JWTSecret)
 	deps := SetupDependencies(dbx, secretKey)
 
-	// REST-сервер
+	metrics.Init()
+
+	// REST API
 	go func() {
 		router := SetupRoutes(deps.UserUC, deps.PVZUC, deps.ReceptionUC, deps.ProductUC, secretKey)
-		fmt.Printf("REST-сервер на порту :%s\n", cfg.App.Port)
-		log.Fatal(http.ListenAndServe(":"+cfg.App.Port, router))
+		log.Println("REST API server running on :8080")
+		log.Fatal(http.ListenAndServe(":8080", router))
 	}()
 
-	// gRPC-сервер
+	// Prometheus
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+		log.Println("Prometheus metrics server running on :9000")
+		log.Fatal(http.ListenAndServe(":9000", nil))
+	}()
+
+	// gRPC
 	go func() {
 		lis, err := net.Listen("tcp", ":3000")
 		if err != nil {
-			log.Fatalf("не удалось слушать порт 3000: %v", err)
+			log.Fatalf("gRPC listen error: %v", err)
 		}
-
 		grpcServer := grpc.NewServer()
 		pvzpb.RegisterPVZServiceServer(grpcServer, grpcapi.NewPVZService(deps.PVZUC))
-
-		fmt.Println("gRPC сервер запущен на порту :3000")
-		if err := grpcServer.Serve(lis); err != nil {
-			log.Fatalf("gRPC сервер завершился с ошибкой: %v", err)
-		}
+		log.Println("gRPC server running on :3000")
+		log.Fatal(grpcServer.Serve(lis))
 	}()
 
 	select {}

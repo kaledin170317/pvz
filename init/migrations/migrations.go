@@ -6,8 +6,8 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"log"
+	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 )
 
@@ -19,13 +19,22 @@ func toValidFileURL(path string) string {
 	return "file:/" + path
 }
 
-func getMigrationsPath() string {
-	_, b, _, _ := runtime.Caller(0)
-	projectRoot := filepath.Dir(filepath.Dir(filepath.Dir(b)))
-	rawPath := filepath.Join(projectRoot, "migrations")
+//func getMigrationsPath() string {
+//	_, b, _, _ := runtime.Caller(0)
+//	projectRoot := filepath.Dir(filepath.Dir(filepath.Dir(b)))
+//	rawPath := filepath.Join(projectRoot, "migrations")
+//
+//	return toValidFileURL(rawPath)
+//}
 
-	return toValidFileURL(rawPath)
+func getMigrationsPath() string {
+	path := os.Getenv("MIGRATIONS_PATH")
+	if path != "" {
+		return path
+	}
+	return "file://migrations" // по умолчанию
 }
+
 func RunMigrations(db *sql.DB) error {
 	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	if err != nil {
@@ -34,8 +43,8 @@ func RunMigrations(db *sql.DB) error {
 	migrationsPath := getMigrationsPath()
 
 	m, err := migrate.NewWithDatabaseInstance(
-		migrationsPath, // путь к миграциям
-		"postgres", driver,
+		migrationsPath,
+		"pvz", driver,
 	)
 	if err != nil {
 		return err
@@ -59,7 +68,7 @@ func RollbackMigrations(db *sql.DB) error {
 
 	m, err := migrate.NewWithDatabaseInstance(
 		migrationsPath,
-		"postgres", driver,
+		"pvz", driver,
 	)
 	if err != nil {
 		return err
