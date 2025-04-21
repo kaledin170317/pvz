@@ -1,0 +1,5 @@
+output: internal/domain/models_gen/openapi_models.gen.go
+package: models_gen
+generate:
+  - types
+  - models

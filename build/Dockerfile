@@ -1,17 +1,17 @@
 
 FROM golang:1.24
 
-# Переходим в нужную директорию внутри контейнера
-WORKDIR /go/pvz
 
-# Копируем всё содержимое проекта (относительно Docker context!)
+WORKDIR /go/pvz
 COPY ../ ./
 
-# Собираем приложение
 RUN go build -o /pvz_server ./cmd/pvzapp/main.go \
     && go clean -cache -modcache
 
+# REST API порт
 EXPOSE 8080
+
+# gRPC порт
 EXPOSE 3000
 
 CMD ["/pvz_server"]
