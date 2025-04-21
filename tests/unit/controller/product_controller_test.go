@@ -3,6 +3,8 @@ package controller_test
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"pvZ/internal/logger"
 	"strings"
 	"testing"
 
@@ -13,6 +15,12 @@ import (
 	"pvZ/internal/domain/models"
 	"pvZ/internal/domain/usecases/mocks"
 )
+
+func TestMain(m *testing.M) {
+	logger.Init()
+	code := m.Run()
+	os.Exit(code)
+}
 
 func TestProductController_AddProductHandler(t *testing.T) {
 	ctrl := gomock.NewController(t)

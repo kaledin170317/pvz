@@ -12,12 +12,13 @@ import (
 	"pvZ/internal/adapters/api/rest"
 	"pvZ/internal/app"
 	"pvZ/internal/config"
+	"pvZ/internal/logger"
 	"testing"
 )
 
 func TestCreatePVZAddProduct(t *testing.T) {
 	cfg := config.Load()
-
+	logger.Init()
 	fmt.Println("DSN:", cfg.DB.DSN())
 
 	dbx := sqlx.MustConnect("postgres", cfg.DB.DSN())

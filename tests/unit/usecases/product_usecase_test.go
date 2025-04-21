@@ -2,6 +2,8 @@ package usecases_test
 
 import (
 	"context"
+	"os"
+	"pvZ/internal/logger"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -10,6 +12,12 @@ import (
 	"pvZ/internal/domain/models"
 	"pvZ/internal/domain/usecases/usecase_impl"
 )
+
+func TestMain(m *testing.M) {
+	logger.Init()
+	code := m.Run()
+	os.Exit(code)
+}
 
 func TestProductUsecase_AddProduct(t *testing.T) {
 	ctrl := gomock.NewController(t)
