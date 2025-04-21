@@ -46,6 +46,9 @@ jobs:
       - name: 📦 Install dependencies
         run: go mod tidy
 
+      - name: ✨ Generate DTO from Swagger
+        run: oapi-codegen -config api/oapi-codegen.yaml api/swagger.yaml
+
       - name: 🧪 Generate mocks
         run: |
           go install github.com/golang/mock/mockgen@v1.6.0

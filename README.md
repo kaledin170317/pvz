@@ -26,39 +26,40 @@
 
 ```
 .
-├── api/                         # OpenAPI и gRPC спецификации
-│   ├── swagger.yaml             # OpenAPI 3.0
-│   ├── oapi-codegen.yaml        # Конфиг генератора oapi-codegen
-│   └── pvz.proto                # gRPC описание
-├── build/                       # Docker-файлы
+├── api/                            
+│   ├── swagger.yaml                # OpenAPI 3.0
+│   ├── oapi-codegen.yaml           # Конфиг генератора oapi-codegen
+│   └── pvz.proto                   # gRPC описание
+├── build/                          # Docker-файлы
 │   ├── Dockerfile
 │   └── docker-compose.yml
 ├── cmd/
-│   └── pvzapp/                  # Точка входа приложения
-├── docs/                        # Документация
+│   └── pvzapp/                     # Точка входа приложения
+├── docs/                           # ТЗ
 │   ├── Backend-trainee-assignment-spring-2025.md
-│   └── product.png              # Схема БД
+│   └── product.png                 # Схема БД
 ├── init/
-│   ├── generate/                # Генерация моков
-│   └── migrations/             # SQL миграции
+│   ├── generate/                   # Генерация моков
+│   └── migrations/                 # SQL миграции
 ├── internal/
 │   ├── adapters/
-│   │   ├── api/                 # Контроллеры REST и gRPC
+│   │   ├── api/                    # Контроллеры REST и gRPC
 │   │   │   ├── grpc/
 │   │   │   └── rest/
 │   │   └── db/
-│   │       ├── mocks/          # Моки для тестов
-│   │       └── postgreSQL/     # Реализация репозиториев
-│   ├── app/                     # Настройка роутера и приложения
-│   ├── config/                  # Загрузка конфигураций
+│   │       ├── mocks/              # Моки
+│   │       └── postgreSQL/         # Реализация репозиториев
+│   ├── app/                        # Настройка роутера и приложения
+│   ├── config/                     # Загрузка конфигураций
 │   ├── domain/
-│   │   ├── models/              # Общие структуры данных
-│   │   ├── models_gen/          # DTO, сгенерированные из swagger.yaml
-│   │   └── usecases/            # Интерфейсы бизнес-логики
-│   └── usecases_impl/           # Реализации usecase'ов
+│       ├── models/                 # Общие структуры данных
+│       ├── models_gen/             # DTO, сгенерированные из swagger.yaml
+│       └── usecases/               # Интерфейсы бизнес-логики
+│           ├── mocks/              # Моки 
+│           └── usecases_impl/      # Реализации usecase'ов
 ├── tests/
-│   ├── integration/             # Интеграционные тесты
-│   └── unit/                    # Юнит-тесты
+│   ├── integration/                # Интеграционные тесты
+│   └── unit/                       # Юнит-тесты
 ├── go.mod
 └── README.md
 ```
