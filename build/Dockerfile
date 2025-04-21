@@ -11,6 +11,7 @@ COPY ../ ./
 RUN go build -o /pvz_server ./cmd/pvzapp/main.go \
     && go clean -cache -modcache
 
-EXPOSE 1488
+EXPOSE 8080
+EXPOSE 3000
 
 CMD ["/pvz_server"]

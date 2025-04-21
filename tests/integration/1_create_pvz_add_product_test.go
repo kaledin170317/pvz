@@ -35,7 +35,9 @@ func TestCreatePVZAddProduct(t *testing.T) {
 
 	secretKey := []byte(cfg.App.JWTSecret)
 
-	r := app.SetupRouter(dbx, secretKey)
+	deps := app.SetupDependencies(dbx, secretKey)
+
+	router := app.SetupRoutes(deps.UserUC, deps.PVZUC, deps.ReceptionUC, deps.ProductUC, secretKey)
 
 	if err := migrations.RollbackMigrations(db); err != nil {
 		assert.NoError(t, err)
@@ -45,7 +47,7 @@ func TestCreatePVZAddProduct(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	testServer := httptest.NewServer(r)
+	testServer := httptest.NewServer(router)
 	defer testServer.Close()
 	testClient := testServer.Client()
 

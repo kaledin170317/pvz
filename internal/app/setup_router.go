@@ -7,32 +7,24 @@ import (
 	"pvZ/internal/adapters/api/rest"
 	"pvZ/internal/adapters/api/rest/middleware"
 	"pvZ/internal/adapters/db/postgreSQL"
+	"pvZ/internal/domain/usecases"
 	"pvZ/internal/domain/usecases/usecase_impl"
 )
 
-func SetupRouter(dbx *sqlx.DB, secretKey []byte) *mux.Router {
-
-	// Репозитории
-	userRepo := postgreSQL.NewUserRepository(dbx)
-	pvzRepo := postgreSQL.NewPVZRepository(dbx)
-	receptionRepo := postgreSQL.NewReceptionRepository(dbx)
-	productRepo := postgreSQL.NewProductRepository(dbx)
-
-	// Usecase
-	userUsecase := usecase_impl.NewUserUsecase(userRepo, secretKey)
-	pvzUC := usecase_impl.NewPVZUsecase(pvzRepo)
-	receptionUC := usecase_impl.NewReceptionUsecase(receptionRepo)
-	productUC := usecase_impl.NewProductUsecase(productRepo, receptionRepo)
-
-	// Контроллеры
-	userController := rest.NewUserController(userUsecase)
+// Настройка HTTP-роутера, принимает готовые usecase'ы
+func SetupRoutes(
+	userUC usecases.UserUsecase,
+	pvzUC usecases.PVZUsecase,
+	receptionUC usecases.ReceptionUsecase,
+	productUC usecases.ProductUsecase,
+	secretKey []byte,
+) *mux.Router {
+	userController := rest.NewUserController(userUC)
 	pvzController := rest.NewPVZController(pvzUC)
 	receptionController := rest.NewReceptionController(receptionUC)
 	productController := rest.NewProductController(productUC)
-
 	auth := middleware.NewAuthMiddleware(secretKey)
 
-	// Маршруты
 	r := mux.NewRouter()
 
 	r.HandleFunc("/dummyLogin", userController.DummyLoginHandler).Methods("POST")
@@ -49,4 +41,27 @@ func SetupRouter(dbx *sqlx.DB, secretKey []byte) *mux.Router {
 	r.Handle("/pvz/{pvzId}/delete_last_product", auth.RequireRole("employee")(http.HandlerFunc(productController.DeleteLastProductHandler))).Methods("POST")
 
 	return r
+}
+
+// Единая точка для инициализации зависимостей
+type Dependencies struct {
+	UserUC      usecases.UserUsecase
+	PVZUC       usecases.PVZUsecase
+	ReceptionUC usecases.ReceptionUsecase
+	ProductUC   usecases.ProductUsecase
+}
+
+// Возвращает все usecase'ы из одной функции
+func SetupDependencies(dbx *sqlx.DB, jwtSecret []byte) *Dependencies {
+	userRepo := postgreSQL.NewUserRepository(dbx)
+	pvzRepo := postgreSQL.NewPVZRepository(dbx)
+	receptionRepo := postgreSQL.NewReceptionRepository(dbx)
+	productRepo := postgreSQL.NewProductRepository(dbx)
+
+	return &Dependencies{
+		UserUC:      usecase_impl.NewUserUsecase(userRepo, jwtSecret),
+		PVZUC:       usecase_impl.NewPVZUsecase(pvzRepo),
+		ReceptionUC: usecase_impl.NewReceptionUsecase(receptionRepo),
+		ProductUC:   usecase_impl.NewProductUsecase(productRepo, receptionRepo),
+	}
 }
